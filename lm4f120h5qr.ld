@@ -22,34 +22,40 @@
 
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00008000
+    FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00040000
+    RAM (rwx)   : ORIGIN = 0x20000000, LENGTH = 0x00008000
+	STACK (rwx) : ORIGIN = 0x20007FFF, LENGTH = 0x00000000
 }
 
 SECTIONS
 {
     .text :
     {
-        _text = .;
-        KEEP(*(.isr_vector))
+        _start_text = .;
+        KEEP(*(.nvic_table))
         *(.text*)
         *(.rodata*)
-        _etext = .;
+        _end_text = .;
     } > FLASH
 
-    .data : AT(ADDR(.text) + SIZEOF(.text))
+    .data :
     {
-        _data = .;
+        _start_data = .;
         *(vtable)
         *(.data*)
-        _edata = .;
-    } > SRAM
+        _end_data = .;
+    } > RAM AT > FLASH
 
     .bss :
     {
-        _bss = .;
+        _start_bss = .;
         *(.bss*)
         *(COMMON)
-        _ebss = .;
-    } > SRAM
+        _end_bss = .;
+    } > RAM
+
+    .stack :
+    {
+        _stack_top = .;
+    } > STACK
 }
