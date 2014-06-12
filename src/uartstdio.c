@@ -21,7 +21,8 @@
 // This is part of revision 9453 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
-
+#include <stdint.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
@@ -59,7 +60,7 @@
 // disable echo by calling UARTEchoSet(false).
 //
 //*****************************************************************************
-static tBoolean g_bDisableEcho;
+static bool g_bDisableEcho;
 
 //*****************************************************************************
 //
@@ -188,7 +189,7 @@ static const unsigned long g_ulUARTPeriph[3] =
 //
 //*****************************************************************************
 #ifdef UART_BUFFERED
-static tBoolean
+static bool
 IsBufferFull(volatile unsigned long *pulRead,
              volatile unsigned long *pulWrite, unsigned long ulSize)
 {
@@ -219,7 +220,7 @@ IsBufferFull(volatile unsigned long *pulRead,
 //
 //*****************************************************************************
 #ifdef UART_BUFFERED
-static tBoolean
+static bool
 IsBufferEmpty(volatile unsigned long *pulRead,
               volatile unsigned long *pulWrite)
 {
@@ -1477,7 +1478,7 @@ UARTFlushRx(void)
 //*****************************************************************************
 #if defined(UART_BUFFERED) || defined(DOXYGEN)
 void
-UARTFlushTx(tBoolean bDiscard)
+UARTFlushTx(bool bDiscard)
 {
     unsigned long ulInt;
 
@@ -1541,7 +1542,7 @@ UARTFlushTx(tBoolean bDiscard)
 //*****************************************************************************
 #if defined(UART_BUFFERED) || defined(DOXYGEN)
 void
-UARTEchoSet(tBoolean bEnable)
+UARTEchoSet(bool bEnable)
 {
     g_bDisableEcho = !bEnable;
 }
@@ -1566,7 +1567,7 @@ UARTStdioIntHandler(void)
     unsigned long ulInts;
     char cChar;
     long lChar;
-    static tBoolean bLastWasCR = false;
+    static bool bLastWasCR = false;
 
     //
     // Get and clear the current interrupt source(s)

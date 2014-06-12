@@ -6,12 +6,12 @@ OBJCOPY = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'objcopy'
 
 LM4FLASH = '~/dev/stellaris/lm4tools/lm4flash/lm4flash'
 
-STELLARISWARE_ROOT = "~/dev/stellaris/stellarisware/"
+STELLARISWARE_ROOT = "~/dev/stellaris/tivaware/"
 
-BASELIBS = [ STELLARISWARE_ROOT + '/driverlib/gcc-cm4f/libdriver-cm4f.a' ]
+BASELIBS = [ STELLARISWARE_ROOT + '/driverlib/gcc/libdriver.a' ]
 
-PART = 'LM4F120H5QR'
-#PART = 'TM4C123GH6PM'
+#PART = 'LM4F120H5QR'
+PART = 'TM4C1233H6PM'
 VARIANT = 'cm4f'
 CPU = '-mcpu=cortex-m4'
 FPU = '-mfpu=fpv4-sp-d16 -mfloat-abi=softfp'

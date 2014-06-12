@@ -22,10 +22,14 @@
 //
 //*****************************************************************************
 
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "inc/hw_can.h"
-#include "inc/hw_ints.h"
+#include "driverlib/pin_map.h"
 #include "driverlib/can.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
@@ -223,6 +227,13 @@ main(void)
     InitConsole();
 
     //
+    // The GPIO port and pins have been set up for CAN.  The CAN peripheral
+    // must be enabled.
+    //
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_CAN0);
+
+
+    //
     // For this example CAN0 is used with RX and TX pins on port D0 and D1.
     // The actual port and pins used may be different on your part, consult
     // the data sheet for more information.
@@ -249,11 +260,6 @@ main(void)
     //
     GPIOPinTypeCAN(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5);
 
-    //
-    // The GPIO port and pins have been set up for CAN.  The CAN peripheral
-    // must be enabled.
-    //
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_CAN0);
 
     //
     // Initialize the CAN controller
@@ -302,10 +308,10 @@ main(void)
     // any CAN ID.  In order to receive any CAN ID, the ID and mask must both
     // be set to 0, and the ID filter enabled.
     //
-    sCANMessage.ulMsgID = 0x398;                        // CAN msg ID - 0 for any
-    sCANMessage.ulMsgIDMask = 0x7ff;                    // mask is 0 for any ID
-    sCANMessage.ulFlags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
-    sCANMessage.ulMsgLen = 16;                       // allow up to 8 bytes
+    sCANMessage.ui32MsgID = 0x398;                        // CAN msg ID - 0 for any
+    sCANMessage.ui32MsgIDMask = 0x7ff;                    // mask is 0 for any ID
+    sCANMessage.ui32Flags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
+    sCANMessage.ui32MsgLen = 16;                       // allow up to 8 bytes
 
     //
     // Now load the message object into the CAN peripheral.  Once loaded the
@@ -348,7 +354,7 @@ main(void)
             // received data must also be provided, so set the buffer pointer
             // within the message object.
             //
-            sCANMessage.pucMsgData = ucMsgData;
+            sCANMessage.pui8MsgData = ucMsgData;
 
             //
             // Read the message from the CAN.  Message object number 1 is used
@@ -368,7 +374,7 @@ main(void)
             // Check to see if there is an indication that some messages were
             // lost.
             //
-            if(sCANMessage.ulFlags & MSG_OBJ_DATA_LOST)
+            if(sCANMessage.ui32Flags & MSG_OBJ_DATA_LOST)
             {
                 UARTprintf("CAN message loss detected\n");
             }
@@ -377,8 +383,8 @@ main(void)
             // Print out the contents of the message that was received.
             //
             UARTprintf("Msg ID=0x%08X len=%u data=0x",
-                       sCANMessage.ulMsgID, sCANMessage.ulMsgLen);
-            for(uIdx = 0; uIdx < sCANMessage.ulMsgLen; uIdx++)
+                       sCANMessage.ui32MsgID, sCANMessage.ui32MsgLen);
+            for(uIdx = 0; uIdx < sCANMessage.ui32MsgLen; uIdx++)
             {
                 UARTprintf("%02X ", ucMsgData[uIdx]);
             }
