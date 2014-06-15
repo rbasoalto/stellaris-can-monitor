@@ -42,6 +42,12 @@
 
 #include "main.h"
 
+// network order 16bit int to host 16bit
+
+uint16_t ntohs(uint16_t x) {
+  return ((x&0x00FF)<<8)+((x&0xFF00)>>8);
+}
+
 // Data buffers
 
 wheel_t wheel_a_data;
@@ -93,11 +99,6 @@ void CANIntHandler(void) {
   }
 }
 
-//*****************************************************************************
-//
-// Configure the CAN and enter a loop to receive CAN messages.
-//
-//*****************************************************************************
 int main(void) {
   char txtBuffer[32];
 
@@ -163,19 +164,19 @@ int main(void) {
 
   for (;;) {
     //lcd_clear_and_home();
-    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", wheel_a_data.wheel1, wheel_a_data.wheel2);
+    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", ntohs(wheel_a_data.wheel1), ntohs(wheel_a_data.wheel2));
     lcd_goto(0,0);
     lcd_puts(txtBuffer);
     
-    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", wheel_b_data.wheel1, wheel_b_data.wheel2);
+    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", ntohs(wheel_b_data.wheel1), ntohs(wheel_b_data.wheel2));
     lcd_goto(1,0);
     lcd_puts(txtBuffer);
     
-    snprintf(txtBuffer, 20, "RPM: %4hd", engine_data.rpm);
+    snprintf(txtBuffer, 20, "RPM: %4hd", ntohs(engine_data.rpm));
     lcd_goto(2,0);
     lcd_puts(txtBuffer);
     
-    snprintf(txtBuffer, 20, "L/H: %4hd", fuel_data.fuel);
+    snprintf(txtBuffer, 20, "L/H: %4hd", ntohs(fuel_data.fuel));
     lcd_goto(3,0);
     lcd_puts(txtBuffer);
   }
