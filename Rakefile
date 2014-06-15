@@ -1,4 +1,4 @@
-TOOLCHAIN_PATH = '~/arm-cs-tools/bin/'
+TOOLCHAIN_PATH = '~/dev/gcc-arm-none-eabi/bin/'
 TOOLCHAIN_PREFIX = 'arm-none-eabi-'
 CC = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'gcc'
 LD = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'ld'
@@ -41,9 +41,9 @@ CFLAGS = [
 LD_TEMPLATE = 'lm4f120h5qr.ld'
 
 LDFLAGS = [
-  '-T '+LD_TEMPLATE,
+#  '-T '+LD_TEMPLATE,
   '--gc-sections',
-  '--entry ResetISR',
+#  '--entry ResetISR',
 ]
 
 FIRMWARE = 'obj/firmware.bin'
@@ -68,6 +68,9 @@ BASELIBS << `#{CC} #{CFLAGS.join ' '} -print-file-name=libc.a`.chomp
 # Get the location of libm.a from the GCC front-end.
 BASELIBS << `#{CC} #{CFLAGS.join ' '} -print-file-name=libm.a`.chomp
 
+# Get the location of libnosys.a from the GCC front-end.
+BASELIBS << `#{CC} #{CFLAGS.join ' '} -print-file-name=libnosys.a`.chomp
+
 OBJ_FILES = C_FILES.collect { |fn|
   ofile = File.join(OBJDIR, File.basename(fn).ext('o'))
   file ofile => [OBJDIR, fn] do
@@ -81,8 +84,8 @@ OBJ_FILES = C_FILES.collect { |fn|
 directory OBJDIR
 
 file DEBUGFIRMWARE => OBJ_FILES do |t|
-  sh "#{LD} #{LDFLAGS.join ' '} -o #{t.name} #{OBJ_FILES.join ' '} #{BASELIBS.join ' '}"
-#  sh "#{CC} #{CFLAGS.join ' '} #{LDFLAGS.join ' '} -o #{t.name} #{OBJ_FILES.join ' '}"
+#  sh "#{LD} #{LDFLAGS.join ' '} -T #{LD_TEMPLATE} -o #{t.name} #{OBJ_FILES.join ' '} #{BASELIBS.join ' '}"
+  sh "#{CC} #{CFLAGS.join ' '} #{LDFLAGS.map{|f| "-Wl,#{f}"}.join ' '} -T #{LD_TEMPLATE} -o #{t.name} #{OBJ_FILES.join ' '} #{BASELIBS.join ' '}"
 end
 
 file FIRMWARE => [DEBUGFIRMWARE] do |t|

@@ -24,19 +24,32 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "inc/hw_can.h"
+
 #include "driverlib/pin_map.h"
 #include "driverlib/can.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
-#include "uartstdio.h"
 
+#include "uartstdio.h"
 #include "spilcd.h"
+
+#include "main.h"
+
+// Data buffers
+
+wheel_t wheel_a_data;
+wheel_t wheel_b_data;
+engine_t engine_data;
+fuel_t fuel_data;
+
+tCANMsgObject sCANMessage;
 
 void InitConsole(void) {
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -53,22 +66,26 @@ void CANIntHandler(void) {
   if (status_flags == CAN_INT_INTID_STATUS) {
     status_flags = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
     // TODO: process the error?
-  } else if (status_flags == 1) {
-    // TODO: read message and process it
-    CANIntClear(CAN0_BASE, 1);
-
-  } else if (status_flags == 2) {
-    // TODO: read message and process it
-    CANIntClear(CAN0_BASE, 2);
-
-  } else if (status_flags == 3) {
-    // TODO: read message and process it
-    CANIntClear(CAN0_BASE, 3);
-
-  } else if (status_flags == 4) {
-    // TODO: read message and process it
-    CANIntClear(CAN0_BASE, 4);
-
+  } else if (status_flags == 1) { // Wheel A
+                                  // TODO: read message and process it
+    // CANIntClear(CAN0_BASE, 1);
+    sCANMessage.pui8MsgData = (uint8_t *)&wheel_a_data;
+    CANMessageGet(CAN0_BASE, 1, &sCANMessage, 1);
+  } else if (status_flags == 2) { // Wheel B
+                                  // TODO: read message and process it
+    // CANIntClear(CAN0_BASE, 2);
+    sCANMessage.pui8MsgData = (uint8_t *)&wheel_b_data;
+    CANMessageGet(CAN0_BASE, 2, &sCANMessage, 1);
+  } else if (status_flags == 3) { // Engine
+                                  // TODO: read message and process it
+    // CANIntClear(CAN0_BASE, 3);
+    sCANMessage.pui8MsgData = (uint8_t *)&engine_data;
+    CANMessageGet(CAN0_BASE, 3, &sCANMessage, 1);
+  } else if (status_flags == 4) { // Fuel
+                                  // TODO: read message and process it
+    // CANIntClear(CAN0_BASE, 4);
+    sCANMessage.pui8MsgData = (uint8_t *)&fuel_data;
+    CANMessageGet(CAN0_BASE, 4, &sCANMessage, 1);
   } else {
     //
     // Spurious interrupt handling can go here.
@@ -82,8 +99,7 @@ void CANIntHandler(void) {
 //
 //*****************************************************************************
 int main(void) {
-  tCANMsgObject sCANMessage;
-  unsigned char ucMsgData[8];
+  char txtBuffer[32];
 
   SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
                  SYSCTL_XTAL_16MHZ);
@@ -114,7 +130,6 @@ int main(void) {
   // any CAN ID.  In order to receive any CAN ID, the ID and mask must both
   // be set to 0, and the ID filter enabled.
   //
-  sCANMessage.ui32MsgID = 0x398;     // CAN msg ID - 0 for any
   sCANMessage.ui32MsgIDMask = 0x7ff; // mask is 0 for any ID
   sCANMessage.ui32Flags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
   sCANMessage.ui32MsgLen = 16; // allow up to 8 bytes
@@ -125,61 +140,44 @@ int main(void) {
   // Use message object 1 for receiving messages (this is not the same as
   // the CAN ID which can be any value in this example).
   //
+  sCANMessage.ui32MsgID = 0x0b0; // wheels A
+  sCANMessage.pui8MsgData = (uint8_t *)&wheel_a_data;
   CANMessageSet(CAN0_BASE, 1, &sCANMessage, MSG_OBJ_TYPE_RX);
+
+  sCANMessage.ui32MsgID = 0x0b2; // wheels B
+  sCANMessage.pui8MsgData = (uint8_t *)&wheel_b_data;
+  CANMessageSet(CAN0_BASE, 2, &sCANMessage, MSG_OBJ_TYPE_RX);
+
+  sCANMessage.ui32MsgID = 0x2c4; // engine
+  sCANMessage.pui8MsgData = (uint8_t *)&engine_data;
+  CANMessageSet(CAN0_BASE, 3, &sCANMessage, MSG_OBJ_TYPE_RX);
+
+  sCANMessage.ui32MsgID = 0x398; // fuel
+  sCANMessage.pui8MsgData = (uint8_t *)&fuel_data;
+  CANMessageSet(CAN0_BASE, 4, &sCANMessage, MSG_OBJ_TYPE_RX);
 
   UARTprintf("Ready to start receiving CAN stuff...\n");
 
   lcd_port_setup();
   lcd_init();
 
-  //
-  // Enter loop to process received messages.  This loop just checks a flag
-  // that is set by the interrupt handler, and if set it reads out the
-  // message and displays the contents.  This is not a robust method for
-  // processing incoming CAN data and can only handle one messages at a time.
-  // If many messages are being received close together, then some messages
-  // may be dropped.  In a real application, some other method should be used
-  // for queuing received messages in a way to ensure they are not lost.  You
-  // can also make use of CAN FIFO mode which will allow messages to be
-  // buffered before they are processed.
-  //
   for (;;) {
-
-    if (true) {
-      uint8_t uIdx;
-      //
-      // Reuse the same message object that was used earlier to configure
-      // the CAN for receiving messages.  A buffer for storing the
-      // received data must also be provided, so set the buffer pointer
-      // within the message object.
-      //
-      sCANMessage.pui8MsgData = ucMsgData;
-
-      //
-      // Read the message from the CAN.  Message object number 1 is used
-      // (which is not the same thing as CAN ID).  The interrupt clearing
-      // flag is not set because this interrupt was already cleared in
-      // the interrupt handler.
-      //
-      CANMessageGet(CAN0_BASE, 1, &sCANMessage, 0);
-
-      //
-      // Check to see if there is an indication that some messages were
-      // lost.
-      //
-      if (sCANMessage.ui32Flags & MSG_OBJ_DATA_LOST) {
-        UARTprintf("CAN message loss detected\n");
-      }
-
-      //
-      // Print out the contents of the message that was received.
-      //
-      UARTprintf("Msg ID=0x%08X len=%u data=0x", sCANMessage.ui32MsgID,
-                 sCANMessage.ui32MsgLen);
-      for (uIdx = 0; uIdx < sCANMessage.ui32MsgLen; uIdx++) {
-        UARTprintf("%02X ", ucMsgData[uIdx]);
-      }
-    }
+    //lcd_clear_and_home();
+    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", wheel_a_data.wheel1, wheel_a_data.wheel2);
+    lcd_goto(0,0);
+    lcd_puts(txtBuffer);
+    
+    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", wheel_b_data.wheel1, wheel_b_data.wheel2);
+    lcd_goto(1,0);
+    lcd_puts(txtBuffer);
+    
+    snprintf(txtBuffer, 20, "RPM: %4hd", engine_data.rpm);
+    lcd_goto(2,0);
+    lcd_puts(txtBuffer);
+    
+    snprintf(txtBuffer, 20, "L/H: %4hd", fuel_data.fuel);
+    lcd_goto(3,0);
+    lcd_puts(txtBuffer);
   }
 
   //

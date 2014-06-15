@@ -13,17 +13,14 @@
 
 static uint8_t backlight_config = 0x00;
 
-inline static void delay_us(uint32_t t) {
-  SysCtlDelay(26*t);
-}
+inline static void delay_us(uint32_t t) { SysCtlDelay(26 * t); }
 
-inline static void delay_ms(uint32_t t) {
-  delay_us(1000*t);
-}
+inline static void delay_ms(uint32_t t) { delay_us(1000 * t); }
 
 static void lcd_shift(uint8_t d) {
   SSIDataPut(SSI2_BASE, d);
-  while(SSIBusy(SSI2_BASE));
+  while (SSIBusy(SSI2_BASE))
+    ;
 }
 
 static void lcd_shift_nibble(uint8_t d) {
@@ -53,8 +50,10 @@ void lcd_port_setup() {
   GPIOPinConfigure(GPIO_PB5_SSI2FSS);
   GPIOPinConfigure(GPIO_PB6_SSI2RX);
   GPIOPinConfigure(GPIO_PB7_SSI2TX);
-  GPIOPinTypeSSI(GPIO_PORTB_BASE, GPIO_PIN_5 | GPIO_PIN_4 | GPIO_PIN_6 | GPIO_PIN_7);
-  SSIConfigSetExpClk(SSI2_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 1000000, 8);
+  GPIOPinTypeSSI(GPIO_PORTB_BASE,
+                 GPIO_PIN_5 | GPIO_PIN_4 | GPIO_PIN_6 | GPIO_PIN_7);
+  SSIConfigSetExpClk(SSI2_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,
+                     SSI_MODE_MASTER, 1000000, 8);
   SSIEnable(SSI2_BASE);
 }
 
@@ -67,16 +66,31 @@ void lcd_init() {
   lcd_write_cmd(0x01);
   lcd_write_cmd(0x06);
   lcd_write_cmd(0x0c);
-  lcd_write_data('h');
-  lcd_write_data('o');
-  lcd_write_data('l');
-  lcd_write_data('a');
 }
 
-void lcd_putc(char c) {
-  
+void lcd_puts(char *c) {
+  for (; *c; c++) {
+    lcd_write_data(*c);
+  }
 }
 
-void lcd_goto(int x, int y) {
-  
+void lcd_goto(int r, int c) {
+  switch (r) {
+  case 0:
+    lcd_write_cmd(0x80 + c);
+    break;
+  case 1:
+    lcd_write_cmd(0xC0 + c);
+    break;
+  case 2:
+    lcd_write_cmd(0x94 + c);
+    break;
+  case 3:
+    lcd_write_cmd(0xD4 + c);
+    break;
+  }
+}
+
+void lcd_clear_and_home() {
+  lcd_write_cmd(0x01);
 }

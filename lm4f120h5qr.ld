@@ -20,6 +20,8 @@
  *
  *****************************************************************************/
 
+ENTRY(ResetISR)
+
 MEMORY
 {
     FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00040000
@@ -59,3 +61,5 @@ SECTIONS
         _stack_top = .;
     } > STACK
 }
+
+PROVIDE(end = _end_bss);
