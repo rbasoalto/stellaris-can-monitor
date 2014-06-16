@@ -55,14 +55,6 @@ fuel_t fuel_data;
 
 tCANMsgObject sCANMessage;
 
-void InitConsole(void) {
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-  GPIOPinConfigure(GPIO_PA0_U0RX);
-  GPIOPinConfigure(GPIO_PA1_U0TX);
-  GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-  UARTStdioInit(0);
-}
-
 void CANIntHandler(void) {
   unsigned long status_flags;
   status_flags = CANIntStatus(CAN0_BASE, CAN_INT_STS_CAUSE);
@@ -102,8 +94,6 @@ int main(void) {
 
   SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
                  SYSCTL_XTAL_16MHZ);
-
-  InitConsole();
 
   SysCtlPeripheralEnable(SYSCTL_PERIPH_CAN0);
 
@@ -159,26 +149,46 @@ int main(void) {
   lcd_init();
 
   for (;;) {
-    //lcd_clear_and_home();
-    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", ntohs(wheel_a_data.wheel1), ntohs(wheel_a_data.wheel2));
+    unsigned int li, lf, ri, rf, fi, ff;
+    unsigned long int v = 0;
+    float vf;
+    li = ntohs(wheel_a_data.wheel2);
+    v += li;
+    lf = li%100;
+    li /= 100;
+    ri = ntohs(wheel_a_data.wheel1);
+    v += ri;
+    rf = ri%100;
+    ri /= 100;
+    snprintf(txtBuffer, 20, "L %3d.%02d -- R %3d.%02d", li, lf, ri, rf);
     lcd_goto(0,0);
     lcd_puts(txtBuffer);
     
+    li = ntohs(wheel_b_data.wheel2);
+    v += li;
+    lf = li%100;
+    li /= 100;
+    ri = ntohs(wheel_b_data.wheel1);
+    v += ri;
+    rf = ri%100;
+    ri /= 100;
     snprintf(txtBuffer, 20, "A: %4hd B: %4hd", ntohs(wheel_b_data.wheel1), ntohs(wheel_b_data.wheel2));
     lcd_goto(1,0);
     lcd_puts(txtBuffer);
     
-    snprintf(txtBuffer, 20, "RPM: %4hd", ntohs(engine_data.rpm));
+    vf = v / 400;
+    snprintf(txtBuffer, 20, "%4d RPM %6.2f KM/H", ntohs(engine_data.rpm), vf);
     lcd_goto(2,0);
     lcd_puts(txtBuffer);
     
-    snprintf(txtBuffer, 20, "L/H: %4hd", ntohs(fuel_data.fuel));
+    fi = ntohs(fuel_data.fuel);
+    vf = fi/100.0/vf;
+    ff = fi % 100;
+    fi /= 100;
+    snprintf(txtBuffer, 20, "%2d.%02d L/H %6.2f KM/L", fi, ff, vf);
     lcd_goto(3,0);
     lcd_puts(txtBuffer);
   }
 
-  //
-  // Return no errors
-  //
   return (0);
 }
