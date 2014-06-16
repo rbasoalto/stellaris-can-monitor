@@ -36,8 +36,6 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
-
-#include "uartstdio.h"
 #include "spilcd.h"
 
 #include "main.h"
@@ -156,8 +154,6 @@ int main(void) {
   sCANMessage.ui32MsgID = 0x398; // fuel
   sCANMessage.pui8MsgData = (uint8_t *)&fuel_data;
   CANMessageSet(CAN0_BASE, 4, &sCANMessage, MSG_OBJ_TYPE_RX);
-
-  UARTprintf("Ready to start receiving CAN stuff...\n");
 
   lcd_port_setup();
   lcd_init();
