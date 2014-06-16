@@ -160,7 +160,7 @@ int main(void) {
     v += ri;
     rf = ri%100;
     ri /= 100;
-    snprintf(txtBuffer, 20, "L %3d.%02d -- R %3d.%02d", li, lf, ri, rf);
+    snprintf(txtBuffer, 21, "L %3d.%02d -- R %3d.%02d", li, lf, ri, rf);
     lcd_goto(0,0);
     lcd_puts(txtBuffer);
     
@@ -172,12 +172,12 @@ int main(void) {
     v += ri;
     rf = ri%100;
     ri /= 100;
-    snprintf(txtBuffer, 20, "A: %4hd B: %4hd", ntohs(wheel_b_data.wheel1), ntohs(wheel_b_data.wheel2));
+    snprintf(txtBuffer, 21, "L %3d.%02d -- R %3d.%02d", li, lf, ri, rf);
     lcd_goto(1,0);
     lcd_puts(txtBuffer);
     
-    vf = v / 400;
-    snprintf(txtBuffer, 20, "%4d RPM %6.2f KM/H", ntohs(engine_data.rpm), vf);
+    vf = v / 400.0;
+    snprintf(txtBuffer, 21, "%4d RPM %3d.%02d KM/H", ntohs(engine_data.rpm), (int)vf, ((int)(vf*100))%100);
     lcd_goto(2,0);
     lcd_puts(txtBuffer);
     
@@ -185,7 +185,7 @@ int main(void) {
     vf = fi/100.0/vf;
     ff = fi % 100;
     fi /= 100;
-    snprintf(txtBuffer, 20, "%2d.%02d L/H %6.2f KM/L", fi, ff, vf);
+    snprintf(txtBuffer, 21, "%2d.%02d L/H %2d.%02d KM/L", fi, ff, (int)vf, ((int)(vf*100))%100);
     lcd_goto(3,0);
     lcd_puts(txtBuffer);
   }
