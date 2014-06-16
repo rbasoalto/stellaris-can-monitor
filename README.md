@@ -8,9 +8,9 @@ Presently, the following data is displayed:
 - Fuel consumption (L/h)
 
 TODOs:
-- [*] Show data in reasonable units (speed is in 1e-2 km/h, fuel consumption is in 1e-2 l/h)
-- [*] Show fuel consumption per distance (km/l or l/100km)
-- [*] Show _one_ consolidated speed value
+- [x] Show data in reasonable units (speed is in 1e-2 km/h, fuel consumption is in 1e-2 l/h)
+- [x] Show fuel consumption per distance (km/l or l/100km)
+- [x] Show _one_ consolidated speed value
 - [ ] Rewrite/replace example code from TI with crappy licenses
 
 License
