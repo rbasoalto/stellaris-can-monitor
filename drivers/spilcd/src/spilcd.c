@@ -53,7 +53,7 @@ void lcd_port_setup() {
   GPIOPinTypeSSI(GPIO_PORTB_BASE,
                  GPIO_PIN_5 | GPIO_PIN_4 | GPIO_PIN_6 | GPIO_PIN_7);
   SSIConfigSetExpClk(SSI2_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,
-                     SSI_MODE_MASTER, 1000000, 8);
+                     SSI_MODE_MASTER, 500000, 8);
   SSIEnable(SSI2_BASE);
 }
 
