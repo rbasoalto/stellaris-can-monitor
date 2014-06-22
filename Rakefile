@@ -1,16 +1,15 @@
+# Set your paths. These are mine ;)
 TOOLCHAIN_PATH = '~/dev/gcc-arm-none-eabi/bin/'
+LM4FLASH = '~/dev/stellaris/lm4tools/lm4flash/lm4flash'
+TIVAWARE_ROOT = "~/dev/stellaris/tivaware/"
+
 TOOLCHAIN_PREFIX = 'arm-none-eabi-'
 CC = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'gcc'
-LD = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'ld'
+LD = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'ld' # Not used, replaced with GCC
 OBJCOPY = TOOLCHAIN_PATH+TOOLCHAIN_PREFIX+'objcopy'
 
-LM4FLASH = '~/dev/stellaris/lm4tools/lm4flash/lm4flash'
+BASELIBS = [ TIVAWARE_ROOT + '/driverlib/gcc/libdriver.a' ]
 
-STELLARISWARE_ROOT = "~/dev/stellaris/tivaware/"
-
-BASELIBS = [ STELLARISWARE_ROOT + '/driverlib/gcc/libdriver.a' ]
-
-#PART = 'LM4F120H5QR'
 PART = 'TM4C1233H6PM'
 VARIANT = 'cm4f'
 CPU = '-mcpu=cortex-m4'
@@ -24,8 +23,7 @@ AFLAGS = [
 ]
 
 CFLAGS = [
-  '-g', '-O0',
-#  '-Os',
+  '-g', '-O0', # For now prefer debug versions
   '-mthumb',
   CPU,
   FPU,
@@ -41,9 +39,7 @@ CFLAGS = [
 LD_TEMPLATE = 'lm4f120h5qr.ld'
 
 LDFLAGS = [
-#  '-T '+LD_TEMPLATE,
   '--gc-sections',
-#  '--entry ResetISR',
 ]
 
 FIRMWARE = 'obj/firmware.bin'
@@ -52,7 +48,7 @@ DEBUGFIRMWARE = 'obj/firmware.axf'
 OBJDIR = 'obj'
 
 INC_DIRS = FileList['**/inc/']
-INC_DIRS << STELLARISWARE_ROOT
+INC_DIRS << TIVAWARE_ROOT
 
 C_FILES = FileList['**/src/*.c']
 H_FILES = FileList['**/inc/*.h']
@@ -71,6 +67,7 @@ BASELIBS << `#{CC} #{CFLAGS.join ' '} -print-file-name=libm.a`.chomp
 # Get the location of libnosys.a from the GCC front-end.
 BASELIBS << `#{CC} #{CFLAGS.join ' '} -print-file-name=libnosys.a`.chomp
 
+# Add tasks for each c source file
 OBJ_FILES = C_FILES.collect { |fn|
   ofile = File.join(OBJDIR, File.basename(fn).ext('o'))
   file ofile => [OBJDIR, fn] do
@@ -84,7 +81,6 @@ OBJ_FILES = C_FILES.collect { |fn|
 directory OBJDIR
 
 file DEBUGFIRMWARE => OBJ_FILES do |t|
-#  sh "#{LD} #{LDFLAGS.join ' '} -T #{LD_TEMPLATE} -o #{t.name} #{OBJ_FILES.join ' '} #{BASELIBS.join ' '}"
   sh "#{CC} #{CFLAGS.join ' '} #{LDFLAGS.map{|f| "-Wl,#{f}"}.join ' '} -T #{LD_TEMPLATE} -o #{t.name} #{OBJ_FILES.join ' '} #{BASELIBS.join ' '}"
 end
 
@@ -96,4 +92,8 @@ task :default => [FIRMWARE]
 
 task :flash => [FIRMWARE] do |t|
   sh "#{LM4FLASH} -v #{FIRMWARE}"
+end
+
+task :clean do |t|
+  sh "rm -rf #{OBJDIR}"
 end
