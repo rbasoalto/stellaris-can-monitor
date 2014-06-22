@@ -63,23 +63,15 @@ void CANIntHandler(void) {
     status_flags = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
     // TODO: process the error?
   } else if (status_flags == 1) { // Wheel A
-                                  // TODO: read message and process it
-    // CANIntClear(CAN0_BASE, 1);
     sCANMessage.pui8MsgData = (uint8_t *)&wheel_a_data;
     CANMessageGet(CAN0_BASE, 1, &sCANMessage, 1);
   } else if (status_flags == 2) { // Wheel B
-                                  // TODO: read message and process it
-    // CANIntClear(CAN0_BASE, 2);
     sCANMessage.pui8MsgData = (uint8_t *)&wheel_b_data;
     CANMessageGet(CAN0_BASE, 2, &sCANMessage, 1);
   } else if (status_flags == 3) { // Engine
-                                  // TODO: read message and process it
-    // CANIntClear(CAN0_BASE, 3);
     sCANMessage.pui8MsgData = (uint8_t *)&engine_data;
     CANMessageGet(CAN0_BASE, 3, &sCANMessage, 1);
   } else if (status_flags == 4) { // Fuel
-                                  // TODO: read message and process it
-    // CANIntClear(CAN0_BASE, 4);
     sCANMessage.pui8MsgData = (uint8_t *)&fuel_data;
     CANMessageGet(CAN0_BASE, 4, &sCANMessage, 1);
   } else {
@@ -182,7 +174,7 @@ int main(void) {
     lcd_puts(txtBuffer);
     
     fi = ntohs(fuel_data.fuel);
-    vf = fi/100.0/vf;
+    vf = vf/(fi/100.0);
     ff = fi % 100;
     fi /= 100;
     snprintf(txtBuffer, 21, "%2d.%02d L/H %2d.%02d KM/L", fi, ff, (int)vf, ((int)(vf*100))%100);
