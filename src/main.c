@@ -141,9 +141,9 @@ int main(void) {
   lcd_init();
 
   for (;;) {
-    unsigned int li, lf, ri, rf, fi, ff;
-    unsigned long int v = 0;
-    float vf;
+    unsigned int li, lf, ri, rf, fi, ff; // integral and fractional parts for left, right wheels' speed, and fuel consumption
+    unsigned long int v = 0; // Average speed
+    float vf, ef; // Float versions of speed and economy
     li = ntohs(wheel_a_data.wheel2);
     v += li;
     lf = li%100;
@@ -174,10 +174,14 @@ int main(void) {
     lcd_puts(txtBuffer);
     
     fi = ntohs(fuel_data.fuel);
-    vf = vf/(fi/100.0);
     ff = fi % 100;
     fi /= 100;
-    snprintf(txtBuffer, 21, "%2d.%02d L/H %2d.%02d KM/L", fi, ff, (int)vf, ((int)(vf*100))%100);
+    if (vf >= .01) {
+      ef = vf/(fi/100.0);
+      snprintf(txtBuffer, 21, "%2d.%02d L/H %2d.%02d KM/L", fi, ff, (int)ef, ((int)(ef*100))%100);
+    } else {
+      snprintf(txtBuffer, 21, "%2d.%02d L/H --.-- KM/L", fi, ff);
+    }
     lcd_goto(3,0);
     lcd_puts(txtBuffer);
   }

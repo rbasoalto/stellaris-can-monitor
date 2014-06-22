@@ -5,13 +5,19 @@ CAN bus monitor for a Toyota Yaris, using a TI Stellaris Launchpad, MCP2551 CAN 
 Presently, the following data is displayed:
 - Individual speed of each wheel
 - Engine RPM
+- Average wheel speed
 - Fuel consumption (L/h)
+- Fuel economy (Km/L)
 
 TODOs:
-- [x] Show data in reasonable units (speed is in 1e-2 km/h, fuel consumption is in 1e-2 l/h)
-- [x] Show fuel consumption per distance (km/l or l/100km)
-- [x] Show _one_ consolidated speed value
 - [ ] Rewrite/replace example code from TI with crappy licenses
+- [ ] Investigate further data to display. Some ideas:
+  - [ ] Engine coolant/oil temperature
+  - [ ] Engine load
+  - [ ] External air temperature (maybe available from intake sensors)
+  - [ ] Distance traveled (i.e. not needing to integrate speed data)
+  - [ ] Absolute level of fuel in tank
+  - [ ] ABS/ESP system status (e.g. light a warning LED when ABS is in action)
 
 License
 =======
